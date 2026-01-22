@@ -46,6 +46,23 @@
             urlcolor=cyan]{hyperref}
 \usepackage{cleveref}                % For smart cross-referencing
 \usepackage[T1]{fontenc}
+% T1 fonts will be used to generate the final print and online PDFs,
+% so please use T1 fonts in your manuscript whenever possible.
+% Other font encondings may result in incorrect characters.
+%
+\usepackage{graphicx}
+% Used for displaying a sample figure. If possible, figure files should
+% be included in EPS format.
+%
+% If you use the hyperref package, please uncomment the following two lines
+% to display URLs in blue roman font according to Springer's eBook style:
+%\usepackage{color}
+%\renewcommand\UrlFont{\color{blue}\rmfamily}
+%\urlstyle{rm}
+%
+
+\usepackage{booktabs}
+\usepackage{float}
 
 \begin{document}
 %
@@ -59,7 +76,7 @@ AI in Halthcare and LGPD -- Federated Learning with Differential Privacy \\
 % an abbreviated paper title here
 %
 \author{André Willyan de S. Vital\inst{1}\orcidID{537550}\and
-Edson Coelho\inst{1}\orcidID{matrícula} \and
+Edson Coelho Rodrigues\inst{1}\orcidID{536038} \and
 Israel Nícolas\inst{1}\orcidID{matrícula}}
 %
 \authorrunning{F. Author et al.}
@@ -83,52 +100,83 @@ The integration of Artificial Intelligence (AI) in healthcare promises significa
 % INTRODUCTION
 % ----------------------------------------------------------------------------
 \section{Introduction}
-The digitization of healthcare has generated vast amounts of sensitive patient data, a critical resource for training modern AI models. Centralizing this data for analysis, however, creates significant privacy risks and conflicts with global data protection regulations such as the LGPD in Brazil, the GDPR in Europe, and HIPAA in the United States \cite{dwork2006calibrating}. Federated Learning (FL) offers a compelling solution by enabling multiple institutions (e.g., hospitals) to collaboratively train a machine learning model. In FL, each participant trains a model locally on its private dataset and shares only the model updates (e.g., gradients or weights) with a central server for aggregation, rather than the raw data itself \cite{mcmahan2017federated}.
 
-While FL mitigates direct data exposure, recent studies have shown that model updates can leak sensitive information about the training data through techniques like membership inference or model inversion attacks \cite{abadi2016deep}. To defend against these threats and provide a quantifiable privacy guarantee, Differential Privacy (DP) is integrated into the FL pipeline. DP is a rigorous mathematical framework that ensures the output of a computation (e.g., a model update) is statistically indistinguishable whether any single individual's data is included or excluded from the dataset \cite{dwork2006calibrating}.
+\section{Methodology and Related Works}
 
-This survey focuses on the intersection of FL and DP within the healthcare domain. We organize the growing body of literature to clarify the design choices, practical implications, and performance characteristics of different FL+DP approaches. Our contributions are threefold: (1) a taxonomy of FL+DP methods based on key dimensions relevant to healthcare deployments; (2) a review of foundational algorithms and applied studies across major healthcare data modalities; and (3) a comparative analysis outlining the strengths, limitations, and suitable application contexts for each paradigm.
+To ensure a comprehensive overview of the field, we conducted a systematic literature review focusing on the intersection of Federated Learning and Differential Privacy applied to medical data.
 
-\section{Related Works}
-\section{Preliminaries}
+\subsection{Search Strategy}
+We performed queries on major academic databases, including IEEE Xplore, ACM Digital Library, Google Scholar, and arXiv. The search was conducted using the string presented in Table~\ref{tab:search_string}.
 
-% ----------------------------------------------------------------------------
-% TAXONOMY SECTION
-% ----------------------------------------------------------------------------
-\section{Taxonomy of FL+DP Methods}
-\label{sec:taxonomy}
-This section organizes federated learning with differential privacy (FL+DP) approaches used in healthcare. The taxonomy in \Cref{tab:taxonomy} focuses on design choices that directly affect privacy guarantees, model utility, and feasibility in real deployments: the trust model, where noise is added, the level at which privacy is defined, the noise mechanism, and the healthcare settings in which each approach is typically used.
-
-\setlength{\tabcolsep}{8pt} 
-\begin{table}[htbp]
-    \centering
-    \caption{Taxonomy of FL+DP methods in healthcare applications.}
-    \label{tab:taxonomy}
-    \begin{tabularx}{\textwidth}{@{}lXXXXX@{}}
-        \toprule
-        \textbf{Paradigm / Category} & \textbf{Trust Model} & \textbf{Noise Placement} & \textbf{Privacy Granularity} & \textbf{Typical Noise Mechanism(s)} & \textbf{Representative Healthcare Contexts} \\
-        \midrule
-        Centralized DP FL & Trusted server & Noise added to aggregated update & User-level (client-level) & Gaussian (DP-SGD, RDP) \cite{abadi2016deep} & EHR risk prediction; multi-center medical imaging studies \cite{horvath2023exploratory}\cite{nampalle2023vision} \\
-        Local DP FL & Untrusted server & Noise added at each client & User-level (per client) & Gaussian or Laplace & Mobile health, IoMT, wearables \\
-        Distributed DP & Untrusted server with cryptography & Client noise + secure aggregation or shuffling & User-level & Gaussian (amplified), discrete Gaussian & Multi-center studies with limited server trust \cite{fares2024medical} \\
-        Record-level ($f$-DP) FL & Untrusted or semi-trusted & Client-side and/or server-side & Record-level (per patient) & Gaussian with RDP accounting \cite{zheng2021federated} & Hospital consortia with per-patient requirements \\
-        Split learning + DP & Semi-trusted & Noise on intermediate activations & Feature- or label-level & Gaussian, Laplace, or Cauchy & Medical imaging tasks \cite{nampalle2023vision} \\
-        \bottomrule
-    \end{tabularx}
+\begin{table}[H]
+\centering
+\small % Reduz levemente a fonte para economizar espaço vertical
+\begin{tabular}{p{0.9\textwidth}} % Aumentei um pouco a largura para menos quebras
+\toprule
+\textbf{Search Query:} \\
+(``Federated Learning'' OR ``FL'') AND (``Differential Privacy'' OR ``DP'') AND (``Healthcare'' OR ``Medical Data'' OR ``EHR'' OR ``Electronic Health Records'') \\ 
+\bottomrule
+\end{tabular}
+\vspace{2pt} % Ajuste fino do espaço entre tabela e legenda se necessário
+\caption{Search string used in the databases.}
+\label{tab:search_string}
 \end{table}
 
-\subsection{Design Choices and Practical Distinctions}
-\textbf{Trust Model.} Whether the server is trusted to apply DP correctly is often the deciding factor. When trust is acceptable, centralized DP applies clipping to client updates and adds noise once to the aggregate. This usually gives the best utility for a fixed privacy budget because the noise is shared across clients \cite{mcmahan2017federated}. If the server is not trusted, local DP requires each client to perturb its own update, which increases noise and typically reduces accuracy unless the client population is very large or updates are heavily compressed. Distributed approaches such as secure aggregation or shuffling sit between these extremes: cryptography prevents inspection of individual updates while allowing more efficient noise allocation than pure local DP \cite{fares2024medical}.
+\subsection{Selection Criteria}
 
-\textbf{Privacy Granularity.} Most FL work distinguishes between user-level DP (protecting participation of a client) and record-level DP (protecting individual data points within a client). In healthcare, hospitals are usually known participants, while patient records require protection. Record-level DP, often formalized through $f$-DP or RDP-based accounting, better matches this setting \cite{zheng2021federated}.
+We filtered the results based on the following criteria:
 
-\textbf{Noise Mechanisms and Placement.} Gaussian noise dominates FL+DP because it composes well under repeated training rounds and integrates cleanly with DP-SGD \cite{abadi2016deep}. Laplace noise appears less often in deep learning due to poorer behavior in high dimensions. Other distributions, such as discrete Gaussian (for secure aggregation) or heavy-tailed noise (for activation protection in split learning), are used in narrower contexts.
+\begin{itemize}
+  \item \textbf{Inclusion:} Papers published between 2022 and 2026; articles explicitly proposing or evaluating FL+DP frameworks; studies focusing on medical modalities (imaging, tabular data, genomics).
+  \item \textbf{Exclusion:} Papers focusing solely on FL without privacy guarantees; papers applying FL+DP to non-medical domains (e.g., finance, IoT); non-English publications.
+\end{itemize}
 
-\textbf{Application Constraints.} Cross-silo deployments with a small number of hospitals often favor centralized or record-level DP with careful accounting. Cross-device scenarios, such as wearables, usually avoid trusting a central server and therefore rely on local or distributed DP despite the utility cost.
+\subsection{Related Surveys}
 
-% ----------------------------------------------------------------------------
-% STATE OF THE ART SECTION
-% ----------------------------------------------------------------------------
+Several survey papers have addressed the challenges of privacy-preserving AI in healthcare. We analyze three recent and significant works.
+
+Ali et al.~\cite{ali2023federated} presented a comprehensive survey focused on the Internet of Medical Things (IoMT). Their work details various privacy threats, such as inference and poisoning attacks, and reviews architectures like privacy-enabled FL and incentive mechanisms. While they discuss Differential Privacy (DP) as a countermeasure, their scope is broadly cast over general IoMT security issues (including authentication and physical device attacks), rather than focusing specifically on the algorithmic nuances of integrating DP into Federated Learning workflows.
+
+In a broader context, Gu et al.~\cite{gu2023review} reviewed privacy enhancement methods for FL in healthcare, categorizing solutions into seven techniques, including Homomorphic Encryption, Blockchain, Peer-to-Peer sharing, and Differential Privacy. Their review provides a high-level landscape of all available Privacy-Enhancing Technologies (PETs). However, as they cover multiple technologies, their analysis of DP is relatively brief, treating it as one of many options rather than the primary subject of investigation.
+
+Closer to our specific domain, Odera~\cite{odera2023federated} conducted a review specifically on FL and DP in clinical health. This work discusses mathematical notations of DP (e.g., privacy budget $\epsilon$) and reviews frameworks such as TensorFlow Federated and PySyft. However, the work is largely focused on practical implementation tools and general challenges.
+
+\section{Preliminaries and Background}
+
+This section defines the core concepts required to understand the proposed taxonomy and solutions.
+
+\subsection{Federated Learning (FL)}
+
+Federated Learning (FL) is a distributed machine learning approach that enables training on decentralized data. The standard algorithm, \textbf{FedAvg}, operates in rounds:
+
+\begin{enumerate}
+    \item \textbf{Initialization:} The central server initializes a global model $w_0$.
+    \item \textbf{Broadcast:} The server sends the current global model to a subset of clients $K$.
+    \item \textbf{Local Training:} Each client $k$ trains the model on its local private dataset $D_k$ using Stochastic Gradient Descent (SGD) to produce a local update $w_t^k$.
+    \item \textbf{Aggregation:} Clients send updates to the server, which aggregates them (typically by weighted averaging) to update the global model:
+\end{enumerate}
+
+\[
+w_{t+1} \leftarrow \sum_{k=1}^{K} \frac{n_k}{n} w_{t+1}^k
+\]
+where $n_k$ is the number of samples at client $k$, and $n$ is the total number of samples.
+
+\subsection{Differential Privacy (DP)}
+
+Differential Privacy provides a formal guarantee of privacy. A randomized algorithm $\mathcal{M}$ satisfies $(\epsilon, \delta)$-differential privacy if, for any two adjacent datasets $D$ and $D'$ (differing by at most one individual), and for all subsets of outputs $S$:
+
+\[
+P[\mathcal{M}(D) \in S] \le e^\epsilon P[\mathcal{M}(D') \in S] + \delta
+\]
+
+\begin{itemize}
+    \item \textbf{Privacy Budget ($\epsilon$):} Controls the strength of the privacy guarantee. A smaller $\epsilon$ yields stronger privacy but implies more noise, potentially degrading model utility (accuracy).
+    \item \textbf{Delta ($\delta$):} The probability that the privacy guarantee fails.
+\end{itemize}
+
+In the context of FL, DP is typically implemented by \textbf{clipping gradients} (to bound sensitivity) and adding \textbf{Gaussian or Laplacian noise} to the updates before aggregation. This ensures that the server (or an eavesdropper) cannot infer the contribution of a single patient from the aggregated model updates.
+
+\section{Taxonomy}
 \section{State of the Art}
 \label{sec:sota}
 This section reviews representative FL+DP methods and applied healthcare studies. For each, we summarize the core method, the DP strategy and accounting approach, the healthcare task, and key empirical observations.
@@ -319,4 +367,18 @@ Despite these advances, several challenges remain. Future research should focus 
 \bibliographystyle{splncs04}
 \bibliography{references}
 %
+
+\begin{thebibliography}{8}
+
+\bibitem{ali2023federated}
+Ali, M., Naeem, F., Tariq, M., Kaddoum, G.: Federated learning for privacy preservation in smart healthcare systems: A comprehensive survey. IEEE Journal of Biomedical and Health Informatics \textbf{27}(2), 778--789 (2023) \doi{10.1109/JBHI.2022.3181823}
+
+\bibitem{gu2023review}
+Gu, X., Sabrina, F., Fan, Z., Sohail, S.: A review of privacy enhancement methods for federated learning in healthcare systems. International Journal of Environmental Research and Public Health \textbf{20}(15), 6539 (2023) \doi{10.3390/ijerph20156539}
+
+\bibitem{odera2023federated}
+Odera, D.: Federated learning and differential privacy in clinical health: Extensive survey. World Journal of Advanced Engineering Technology and Sciences \textbf{8}(2), 305--329 (2023) \doi{10.30574/wjaets.2023.8.2.0113}
+
+\end{thebibliography}
+
 \end{document}
