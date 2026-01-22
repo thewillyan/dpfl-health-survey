@@ -19,6 +19,10 @@
 %\renewcommand\UrlFont{\color{blue}\rmfamily}
 %\urlstyle{rm}
 %
+
+\usepackage{booktabs}
+\usepackage{float}
+
 \begin{document}
 %
 \title{%
@@ -31,7 +35,7 @@ AI in Halthcare and LGPD -- Federated Learning with Differential Privacy \\
 % an abbreviated paper title here
 %
 \author{André Willyan de S. Vital\inst{1}\orcidID{537550}\and
-Edson Coelho\inst{1}\orcidID{matrícula} \and
+Edson Coelho Rodrigues\inst{1}\orcidID{536038} \and
 Israel Nícolas\inst{1}\orcidID{matrícula}}
 %
 \authorrunning{F. Author et al.}
@@ -48,8 +52,82 @@ ABSTRACT HERE
 \end{abstract}
 
 \section{Introduction}
-\section{Related Works}
-\section{Preliminaries}
+
+\section{Methodology and Related Works}
+
+To ensure a comprehensive overview of the field, we conducted a systematic literature review focusing on the intersection of Federated Learning and Differential Privacy applied to medical data.
+
+\subsection{Search Strategy}
+We performed queries on major academic databases, including IEEE Xplore, ACM Digital Library, Google Scholar, and arXiv. The search was conducted using the string presented in Table~\ref{tab:search_string}.
+
+\begin{table}[H]
+\centering
+\small % Reduz levemente a fonte para economizar espaço vertical
+\begin{tabular}{p{0.9\textwidth}} % Aumentei um pouco a largura para menos quebras
+\toprule
+\textbf{Search Query:} \\
+(``Federated Learning'' OR ``FL'') AND (``Differential Privacy'' OR ``DP'') AND (``Healthcare'' OR ``Medical Data'' OR ``EHR'' OR ``Electronic Health Records'') \\ 
+\bottomrule
+\end{tabular}
+\vspace{2pt} % Ajuste fino do espaço entre tabela e legenda se necessário
+\caption{Search string used in the databases.}
+\label{tab:search_string}
+\end{table}
+
+\subsection{Selection Criteria}
+
+We filtered the results based on the following criteria:
+
+\begin{itemize}
+  \item \textbf{Inclusion:} Papers published between 2022 and 2026; articles explicitly proposing or evaluating FL+DP frameworks; studies focusing on medical modalities (imaging, tabular data, genomics).
+  \item \textbf{Exclusion:} Papers focusing solely on FL without privacy guarantees; papers applying FL+DP to non-medical domains (e.g., finance, IoT); non-English publications.
+\end{itemize}
+
+\subsection{Related Surveys}
+
+Several survey papers have addressed the challenges of privacy-preserving AI in healthcare. We analyze three recent and significant works.
+
+Ali et al.~\cite{ali2023federated} presented a comprehensive survey focused on the Internet of Medical Things (IoMT). Their work details various privacy threats, such as inference and poisoning attacks, and reviews architectures like privacy-enabled FL and incentive mechanisms. While they discuss Differential Privacy (DP) as a countermeasure, their scope is broadly cast over general IoMT security issues (including authentication and physical device attacks), rather than focusing specifically on the algorithmic nuances of integrating DP into Federated Learning workflows.
+
+In a broader context, Gu et al.~\cite{gu2023review} reviewed privacy enhancement methods for FL in healthcare, categorizing solutions into seven techniques, including Homomorphic Encryption, Blockchain, Peer-to-Peer sharing, and Differential Privacy. Their review provides a high-level landscape of all available Privacy-Enhancing Technologies (PETs). However, as they cover multiple technologies, their analysis of DP is relatively brief, treating it as one of many options rather than the primary subject of investigation.
+
+Closer to our specific domain, Odera~\cite{odera2023federated} conducted a review specifically on FL and DP in clinical health. This work discusses mathematical notations of DP (e.g., privacy budget $\epsilon$) and reviews frameworks such as TensorFlow Federated and PySyft. However, the work is largely focused on practical implementation tools and general challenges.
+
+\section{Preliminaries and Background}
+
+This section defines the core concepts required to understand the proposed taxonomy and solutions.
+
+\subsection{Federated Learning (FL)}
+
+Federated Learning (FL) is a distributed machine learning approach that enables training on decentralized data. The standard algorithm, \textbf{FedAvg}, operates in rounds:
+
+\begin{enumerate}
+    \item \textbf{Initialization:} The central server initializes a global model $w_0$.
+    \item \textbf{Broadcast:} The server sends the current global model to a subset of clients $K$.
+    \item \textbf{Local Training:} Each client $k$ trains the model on its local private dataset $D_k$ using Stochastic Gradient Descent (SGD) to produce a local update $w_t^k$.
+    \item \textbf{Aggregation:} Clients send updates to the server, which aggregates them (typically by weighted averaging) to update the global model:
+\end{enumerate}
+
+\[
+w_{t+1} \leftarrow \sum_{k=1}^{K} \frac{n_k}{n} w_{t+1}^k
+\]
+where $n_k$ is the number of samples at client $k$, and $n$ is the total number of samples.
+
+\subsection{Differential Privacy (DP)}
+
+Differential Privacy provides a formal guarantee of privacy. A randomized algorithm $\mathcal{M}$ satisfies $(\epsilon, \delta)$-differential privacy if, for any two adjacent datasets $D$ and $D'$ (differing by at most one individual), and for all subsets of outputs $S$:
+
+\[
+P[\mathcal{M}(D) \in S] \le e^\epsilon P[\mathcal{M}(D') \in S] + \delta
+\]
+
+\begin{itemize}
+    \item \textbf{Privacy Budget ($\epsilon$):} Controls the strength of the privacy guarantee. A smaller $\epsilon$ yields stronger privacy but implies more noise, potentially degrading model utility (accuracy).
+    \item \textbf{Delta ($\delta$):} The probability that the privacy guarantee fails.
+\end{itemize}
+
+In the context of FL, DP is typically implemented by \textbf{clipping gradients} (to bound sensitivity) and adding \textbf{Gaussian or Laplacian noise} to the updates before aggregation. This ensures that the server (or an eavesdropper) cannot infer the contribution of a single patient from the aggregated model updates.
+
 \section{Taxonomy}
 \section{State of the Art}
 \section{Comparative Analysis}
@@ -67,4 +145,18 @@ ABSTRACT HERE
 % \bibliographystyle{splncs04}
 % \bibliography{mybibliography}
 %
+
+\begin{thebibliography}{8}
+
+\bibitem{ali2023federated}
+Ali, M., Naeem, F., Tariq, M., Kaddoum, G.: Federated learning for privacy preservation in smart healthcare systems: A comprehensive survey. IEEE Journal of Biomedical and Health Informatics \textbf{27}(2), 778--789 (2023) \doi{10.1109/JBHI.2022.3181823}
+
+\bibitem{gu2023review}
+Gu, X., Sabrina, F., Fan, Z., Sohail, S.: A review of privacy enhancement methods for federated learning in healthcare systems. International Journal of Environmental Research and Public Health \textbf{20}(15), 6539 (2023) \doi{10.3390/ijerph20156539}
+
+\bibitem{odera2023federated}
+Odera, D.: Federated learning and differential privacy in clinical health: Extensive survey. World Journal of Advanced Engineering Technology and Sciences \textbf{8}(2), 305--329 (2023) \doi{10.30574/wjaets.2023.8.2.0113}
+
+\end{thebibliography}
+
 \end{document}
