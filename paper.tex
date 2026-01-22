@@ -1,24 +1,52 @@
-% This is samplepaper.tex, a sample chapter demonstrating the
-% LLNCS macro package for Springer Computer Science proceedings;
-% Version 2.21 of 2022/01/12
-%
+% ============================================================================
+% AI in Healthcare and LGPD - Federated Learning with Differential Privacy
+% ============================================================================
 \documentclass[runningheads]{llncs}
-%
+
+% ============================================================================
+% PACKAGES
+% ============================================================================
+\usepackage[utf8]{inputenc}          % For input encoding
+\usepackage[T1]{fontenc}             % For font encoding
+\usepackage[english]{babel}          % For language-specific hyphenation
+\usepackage{geometry}                % For page margins
+\geometry{a4paper, margin=1in}
+\usepackage{setspace}                % For line spacing
+\onehalfspacing                      % 1.5 line spacing
+
+% Scientific Writing & Typography
+\usepackage{lmodern}                 % Use Latin Modern fonts
+\usepackage{microtype}               % Improves text justification
+
+% Tables and Figures
+\usepackage{booktabs}                % For professional tables (toprule, midrule, etc.)
+\usepackage{tabularx}                % For adjustable width tables
+\usepackage{multirow}                % For multi-row cells in tables
+\usepackage{graphicx}                % For including figures
+\usepackage{caption}                 % For customizing captions
+\usepackage{subcaption}              % For subfigures
+
+% Mathematics and Algorithms
+% \usepackage{amsmath, amssymb, amsthm} % Essential math packages
+\usepackage{algorithm}               % For algorithm environment
+\usepackage{algpseudocode}           % For pseudocode
+
+% Bibliography Management (using biblatex as recommended)
+% \usepackage[backend=biber,           % Use biber as the backend
+%             style=numeric-comp,      % Numerical citation style
+%             sorting=nyt,             % Sort by name, year, title
+%             maxbibnames=10,          % Show up to 10 authors in bibliography
+%             minbibnames=3]{biblatex} % Show 'et al.' for 4+ authors in citations
+% \addbibresource{references.bib}      % Your bibliography file
+
+% Hyperlinks and Document Metadata
+\usepackage[colorlinks=true,
+            % linkcolor=blue,
+            citecolor=green,
+            urlcolor=cyan]{hyperref}
+\usepackage{cleveref}                % For smart cross-referencing
 \usepackage[T1]{fontenc}
-% T1 fonts will be used to generate the final print and online PDFs,
-% so please use T1 fonts in your manuscript whenever possible.
-% Other font encondings may result in incorrect characters.
-%
-\usepackage{graphicx}
-% Used for displaying a sample figure. If possible, figure files should
-% be included in EPS format.
-%
-% If you use the hyperref package, please uncomment the following two lines
-% to display URLs in blue roman font according to Springer's eBook style:
-%\usepackage{color}
-%\renewcommand\UrlFont{\color{blue}\rmfamily}
-%\urlstyle{rm}
-%
+
 \begin{document}
 %
 \title{%
@@ -42,17 +70,171 @@ Israel Nícolas\inst{1}\orcidID{matrícula}}
 %
 \maketitle              % typeset the header of the contribution
 %
+
+% ----------------------------------------------------------------------------
+% ABSTRACT
+% ----------------------------------------------------------------------------
 \begin{abstract}
-ABSTRACT HERE
+The integration of Artificial Intelligence (AI) in healthcare promises significant advancements in diagnostics, treatment personalization, and patient outcomes. However, this potential is constrained by stringent data privacy regulations like Brazil's \textit{Lei Geral de Proteção de Dados} (LGPD). Federated Learning (FL) has emerged as a paradigm that enables collaborative model training across decentralized data sources without sharing raw patient information. To provide rigorous, mathematical privacy guarantees against inference and reconstruction attacks, Differential Privacy (DP) is increasingly combined with FL. This survey presents a structured analysis of Federated Learning with Differential Privacy (FL+DP) methods specifically for healthcare applications. We propose a taxonomy categorizing approaches by trust model, noise placement, privacy granularity, and mechanism. We then review the state-of-the-art foundational algorithms and applied studies across medical imaging, electronic health records (EHR), and wearable devices. Finally, a comparative analysis evaluates the privacy-utility trade-offs, scalability, and deployment constraints of different FL+DP paradigms, concluding with practical recommendations for implementing privacy-preserving AI in compliant and effective healthcare systems.
 \keywords{("Federated Learning" OR "FL") AND ("Differential Privacy" OR "DP") AND ("Healthcare" OR "Medical Data" OR "EHR" OR "Electronic Health Records")}
 \end{abstract}
 
+% ----------------------------------------------------------------------------
+% INTRODUCTION
+% ----------------------------------------------------------------------------
 \section{Introduction}
+The digitization of healthcare has generated vast amounts of sensitive patient data, a critical resource for training modern AI models. Centralizing this data for analysis, however, creates significant privacy risks and conflicts with global data protection regulations such as the LGPD in Brazil, the GDPR in Europe, and HIPAA in the United States \cite{dwork2006calibrating}. Federated Learning (FL) offers a compelling solution by enabling multiple institutions (e.g., hospitals) to collaboratively train a machine learning model. In FL, each participant trains a model locally on its private dataset and shares only the model updates (e.g., gradients or weights) with a central server for aggregation, rather than the raw data itself \cite{mcmahan2017federated}.
+
+While FL mitigates direct data exposure, recent studies have shown that model updates can leak sensitive information about the training data through techniques like membership inference or model inversion attacks \cite{abadi2016deep}. To defend against these threats and provide a quantifiable privacy guarantee, Differential Privacy (DP) is integrated into the FL pipeline. DP is a rigorous mathematical framework that ensures the output of a computation (e.g., a model update) is statistically indistinguishable whether any single individual's data is included or excluded from the dataset \cite{dwork2006calibrating}.
+
+This survey focuses on the intersection of FL and DP within the healthcare domain. We organize the growing body of literature to clarify the design choices, practical implications, and performance characteristics of different FL+DP approaches. Our contributions are threefold: (1) a taxonomy of FL+DP methods based on key dimensions relevant to healthcare deployments; (2) a review of foundational algorithms and applied studies across major healthcare data modalities; and (3) a comparative analysis outlining the strengths, limitations, and suitable application contexts for each paradigm.
+
 \section{Related Works}
 \section{Preliminaries}
-\section{Taxonomy}
+
+% ----------------------------------------------------------------------------
+% TAXONOMY SECTION
+% ----------------------------------------------------------------------------
+\section{Taxonomy of FL+DP Methods}
+\label{sec:taxonomy}
+This section organizes federated learning with differential privacy (FL+DP) approaches used in healthcare. The taxonomy in \Cref{tab:taxonomy} focuses on design choices that directly affect privacy guarantees, model utility, and feasibility in real deployments: the trust model, where noise is added, the level at which privacy is defined, the noise mechanism, and the healthcare settings in which each approach is typically used.
+
+\setlength{\tabcolsep}{8pt} 
+\begin{table}[htbp]
+    \centering
+    \caption{Taxonomy of FL+DP methods in healthcare applications.}
+    \label{tab:taxonomy}
+    \begin{tabularx}{\textwidth}{@{}lXXXXX@{}}
+        \toprule
+        \textbf{Paradigm / Category} & \textbf{Trust Model} & \textbf{Noise Placement} & \textbf{Privacy Granularity} & \textbf{Typical Noise Mechanism(s)} & \textbf{Representative Healthcare Contexts} \\
+        \midrule
+        Centralized DP FL & Trusted server & Noise added to aggregated update & User-level (client-level) & Gaussian (DP-SGD, RDP) \cite{abadi2016deep} & EHR risk prediction; multi-center medical imaging studies \cite{horvath2023exploratory}\cite{nampalle2023vision} \\
+        Local DP FL & Untrusted server & Noise added at each client & User-level (per client) & Gaussian or Laplace & Mobile health, IoMT, wearables \\
+        Distributed DP & Untrusted server with cryptography & Client noise + secure aggregation or shuffling & User-level & Gaussian (amplified), discrete Gaussian & Multi-center studies with limited server trust \cite{fares2024medical} \\
+        Record-level ($f$-DP) FL & Untrusted or semi-trusted & Client-side and/or server-side & Record-level (per patient) & Gaussian with RDP accounting \cite{zheng2021federated} & Hospital consortia with per-patient requirements \\
+        Split learning + DP & Semi-trusted & Noise on intermediate activations & Feature- or label-level & Gaussian, Laplace, or Cauchy & Medical imaging tasks \cite{nampalle2023vision} \\
+        \bottomrule
+    \end{tabularx}
+\end{table}
+
+\subsection{Design Choices and Practical Distinctions}
+\textbf{Trust Model.} Whether the server is trusted to apply DP correctly is often the deciding factor. When trust is acceptable, centralized DP applies clipping to client updates and adds noise once to the aggregate. This usually gives the best utility for a fixed privacy budget because the noise is shared across clients \cite{mcmahan2017federated}. If the server is not trusted, local DP requires each client to perturb its own update, which increases noise and typically reduces accuracy unless the client population is very large or updates are heavily compressed. Distributed approaches such as secure aggregation or shuffling sit between these extremes: cryptography prevents inspection of individual updates while allowing more efficient noise allocation than pure local DP \cite{fares2024medical}.
+
+\textbf{Privacy Granularity.} Most FL work distinguishes between user-level DP (protecting participation of a client) and record-level DP (protecting individual data points within a client). In healthcare, hospitals are usually known participants, while patient records require protection. Record-level DP, often formalized through $f$-DP or RDP-based accounting, better matches this setting \cite{zheng2021federated}.
+
+\textbf{Noise Mechanisms and Placement.} Gaussian noise dominates FL+DP because it composes well under repeated training rounds and integrates cleanly with DP-SGD \cite{abadi2016deep}. Laplace noise appears less often in deep learning due to poorer behavior in high dimensions. Other distributions, such as discrete Gaussian (for secure aggregation) or heavy-tailed noise (for activation protection in split learning), are used in narrower contexts.
+
+\textbf{Application Constraints.} Cross-silo deployments with a small number of hospitals often favor centralized or record-level DP with careful accounting. Cross-device scenarios, such as wearables, usually avoid trusting a central server and therefore rely on local or distributed DP despite the utility cost.
+
+% ----------------------------------------------------------------------------
+% STATE OF THE ART SECTION
+% ----------------------------------------------------------------------------
 \section{State of the Art}
+\label{sec:sota}
+This section reviews representative FL+DP methods and applied healthcare studies. For each, we summarize the core method, the DP strategy and accounting approach, the healthcare task, and key empirical observations.
+
+\subsection{Foundational Algorithms and Platforms}
+\textbf{FedAvg with Centralized DP (DP-FedAvg).}
+\textit{Core idea.} Standard federated averaging with per-client gradient clipping and Gaussian noise added at aggregation. Privacy loss is tracked using Rényi DP or a moments accountant \cite{abadi2016deep}\cite{mcmahan2017federated}.
+\textit{DP strategy.} Server-side ($\epsilon$, $\delta$)-DP with user-level guarantees.
+\textit{Healthcare evidence.} Frequently used as a baseline in imaging and EHR studies. With tuned clipping and noise, many works report performance close to non-private centralized training for moderate $\epsilon$ \cite{horvath2023exploratory}\cite{nampalle2023vision}. The main drawbacks are reliance on a trusted server and sensitivity to the number of clients per round.
+
+\textbf{Local DP FL.}
+\textit{Core idea.} Each client perturbs its update before transmission, so the server never sees raw gradients or parameters.
+\textit{DP strategy.} Per-client local DP, typically Gaussian or Laplace noise with composition across rounds.
+\textit{Healthcare evidence.} Appropriate when the server cannot be trusted, such as in mobile health. In practice, high-dimensional models suffer noticeable accuracy loss unless mitigated by compression, feature selection, or very large client pools.
+
+\textbf{Distributed DP with Secure Aggregation or Shuffling.}
+\textit{Core idea.} Clients add limited noise locally, and cryptographic aggregation ensures that only the sum of updates is revealed. Shuffling provides additional privacy amplification.
+\textit{DP strategy.} Client-side noise with amplification-based accounting.
+\textit{Healthcare evidence.} Often achieves accuracy close to centralized DP while relaxing trust assumptions. Feasible in multi-institution settings where cryptographic protocols can be deployed \cite{fares2024medical}.
+
+\textbf{Record-level DP Frameworks ($f$-DP).}
+\textit{Core idea.} Privacy is defined at the patient record level rather than the client level, with clipping and noise calibrated to per-example sensitivity.
+\textit{DP strategy.} Gaussian mechanisms with RDP-based accounting \cite{zheng2021federated}.
+\textit{Healthcare evidence.} Well suited to hospital consortia where institutional participation is public but patient privacy is critical. Utility is often better than strict user-level DP, though accounting becomes more complex.
+
+\textbf{Split Learning with DP.}
+\textit{Core idea.} Model computation is divided between client and server, and only intermediate activations are shared. Noise is added to these activations to limit leakage.
+\textit{DP strategy.} DP applied to activations using Gaussian or task-specific noise.
+\textit{Healthcare evidence.} Common in medical imaging, where raw data remain local. Can reduce label or feature leakage with modest accuracy loss if noise is carefully chosen \cite{nampalle2023vision}.
+
+\subsection{Applied Studies in Healthcare}
+\textbf{Medical Imaging.} Studies on histopathology and radiology report that DP-FedAvg can approach non-private baselines when $\epsilon$ is kept in the low single digits. For instance, recent work on classifying chest X-rays with FL and DP has demonstrated the viability of this approach for clinical tasks while maintaining formal privacy guarantees \cite{nampalle2023vision}. Split learning variants that target intermediate representations reduce specific inference attacks while maintaining usable accuracy \cite{deepfed2021}.
+
+\textbf{Electronic Health Records.} For tabular EHR tasks such as risk prediction, Gaussian DP combined with federated optimizers often performs well under tight privacy budgets, provided the number of rounds and sampling strategy are controlled. An exploratory analysis on the MIMIC-III clinical dataset showed the practical trade-offs when applying FL+DP to real, non-IID clinical data \cite{horvath2023exploratory}.
+
+\textbf{Wearables and IoMT.} On-device FL with local DP protects highly distributed personal signals. Performance depends heavily on scale: large populations can absorb noise, while small cohorts often cannot. The application of these techniques is expanding into real-time health monitoring systems within the Internet of Medical Things (IoMT) \cite{flhealthcare2025}.
+
+\textbf{Genomic Data.} FL+DP is also being applied to sensitive genomic data for tasks like identifying new viral infections from genome sequences, showcasing its utility beyond traditional imaging and EHR data \cite{flgenome2025}.
+
+\subsection{Emerging Directions}
+Adaptive clipping and noise schedules reduce unnecessary noise under heterogeneous data. Sample-wise DP adjusts protection based on per-example sensitivity and has shown promise in imaging. Combining DP with cryptographic tools improves trust assumptions with manageable overhead. Refinements in accounting, especially RDP and amplification results, continue to tighten bounds. Some recent work explores task-specific noise distributions when attacks target particular activation statistics.
+
+% ----------------------------------------------------------------------------
+% COMPARATIVE ANALYSIS SECTION
+% ----------------------------------------------------------------------------
 \section{Comparative Analysis}
+\label{sec:comparison}
+This section compares FL+DP approaches along four dimensions relevant to healthcare: privacy–utility trade-offs, scalability, trust assumptions, and deployment constraints. \Cref{tab:comparison} summarizes representative results.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Comparative summary of representative FL+DP methods.}
+  \label{tab:comparison}
+  \scriptsize
+  \begin{subtable}[t]{\textwidth}
+    \centering
+    \caption{FL variant, DP strategy and privacy levels}
+    \begin{tabularx}{\linewidth}{@{}p{3.0cm} X X X @{}}
+      \toprule
+      \textbf{Method} & \textbf{FL Variant} & \textbf{DP Strategy} & \textbf{Typical $\epsilon,\delta$} \\
+      \midrule
+      DP-FedAvg & FedAvg & Server-side Gaussian, RDP & $\epsilon$ in low single digits \\
+      Local DP FL & FedAvg & Client-side noise & Larger effective $\epsilon$ \\
+      Distributed DP + Secure Aggregation & FedAvg + cryptography & Client noise + aggregation & Comparable to CDP at scale \\
+      Record-level FL & FedAvg variants & Per-record Gaussian, RDP & Smaller $\epsilon$ per record \\
+      Split learning + DP & Split models & Noise on activations & Task-specific \\
+      \bottomrule
+    \end{tabularx}
+  \end{subtable}%
+  \hfill
+  \begin{subtable}[t]{\textwidth}
+    \centering
+    \caption{Data modality, performance impact, strengths and limitations}
+    \begin{tabularx}{\linewidth}{@{}p{3.0cm} X X X X @{}}
+      \toprule
+      \textbf{Method} & \textbf{Data Modality} & \textbf{Impact on Performance} & \textbf{Strengths} & \textbf{Limitations} \\
+      \midrule
+      DP-FedAvg & Imaging, EHR & Small to moderate drop & Strong utility, simple accounting & Requires trusted server \\
+      Local DP FL & Mobile health & Larger drop & No server trust & High noise in high dimensions \\
+      Distributed DP + Secure Aggregation & Multi-center studies & Near CDP utility & Reduced trust requirement & Cryptographic overhead \\
+      Record-level FL & Hospital EHR & Better than user-level DP & Patient-focused protection & Complex accounting \\
+      Split learning + DP & Imaging & Limited loss & Protects features & Architectural changes \\
+      \bottomrule
+    \end{tabularx}
+  \end{subtable}
+\end{table}
+
+\subsection{Discussion}
+\textbf{Privacy versus Utility.} Centralized DP usually provides the best trade-off when trust is acceptable. Local DP offers the strongest independence from the server but at a clear cost for complex models. Distributed DP often balances the two by trading cryptographic complexity for better accuracy. A recent scoping review on DP for medical deep learning confirms that while DP-SGD can maintain clinical utility at moderate privacy budgets (e.g., $\epsilon \approx 10$), stricter privacy (e.g., $\epsilon \approx 1$) often leads to more substantial accuracy loss, especially in smaller datasets \cite{dpmedical2026}.
+
+\textbf{Scalability.} Cross-device settings prioritize lightweight coordination, while cross-silo healthcare networks can tolerate heavier protocols and tighter accounting. Secure aggregation increases overhead but is practical for regional or national deployments.
+
+\textbf{Trust and Threat Models.} Method selection should match institutional realities. Hospital consortia may accept trusted aggregation, while patient-facing systems should assume an untrusted server. Threat models must be explicit, as they directly affect mechanism design and reported guarantees. The choice often hinges on whether protection is needed against a curious server (requiring local or distributed DP) or only against external attackers (allowing centralized DP) \cite{dwork2006calibrating}.
+
+\textbf{Deployment Considerations.} Accurate accounting across rounds is essential, as are clear reports of $\epsilon$, $\delta$, clipping bounds, and sampling rates. Data heterogeneity remains a major challenge, and regulatory interpretation of privacy parameters is often as important as the mathematics. Successful deployment in clinical environments, as seen in applications for biomedical image classification, requires careful tuning to balance privacy, accuracy, and computational feasibility \cite{flhealthcare2025}.
+
+\subsection{Concluding Assessment}
+In practice:
+\begin{itemize}
+    \item \textbf{Centralized DP-FedAvg} is often the most effective starting point when a trusted aggregator exists and provides a strong balance of utility and formal privacy \cite{abadi2016deep}\cite{mcmahan2017federated}.
+    \item \textbf{Distributed DP with secure aggregation} is a strong alternative when trust is limited but infrastructure is available, offering a pragmatic balance \cite{fares2024medical}.
+    \item \textbf{Local DP} suits very large device populations but requires careful model design.
+    \item \textbf{Split learning with DP} is appropriate when protecting intermediate representations is the main concern, particularly in imaging contexts \cite{nampalle2023vision}.
+\end{itemize}
+Clear reporting of assumptions, parameters, and threat models remains critical for reproducible and interpretable healthcare deployments. As the field progresses, integrating these privacy-preserving techniques into end-to-end systems that are both compliant with regulations like LGPD and clinically effective will be paramount.
+
 \section{Open Challenges and Research Directions}
 Despite the promising results of Federated Learning (FL) and Differential Privacy (DP) in healthcare, several open research challenges remain \cite{kairouz2021advances}.
 
@@ -134,7 +316,7 @@ Despite these advances, several challenges remain. Future research should focus 
 % BibTeX users should specify bibliography style 'splncs04'.
 % References will then be sorted and formatted in the correct style.
 %
-% \bibliographystyle{splncs04}
-% \bibliography{mybibliography}
+\bibliographystyle{splncs04}
+\bibliography{references}
 %
 \end{document}
