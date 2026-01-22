@@ -54,9 +54,79 @@ ABSTRACT HERE
 \section{State of the Art}
 \section{Comparative Analysis}
 \section{Open Challenges and Research Directions}
+Despite the promising results of Federated Learning (FL) and Differential Privacy (DP) in healthcare, several open research challenges remain \cite{kairouz2021advances}.
+
+\subsection{Generalization and Robustness}
+
+Improving the generalization of the model across heterogeneous institutions remains a major challenge. Differences in data distributions, acquisition protocols, and population demographics often degrade global model performance in non-IID settings \cite{mcmahan2017communication,beaulieu2020federated}.
+
+\subsection{Efficiency and Sustainability}
+
+Reducing data, computation, and energy requirements is critical for real-world deployment. Communication overhead between clients and servers, as well as repeated local training rounds, can significantly increase energy consumption and latency \cite{kairouz2021advances}.
+
+\subsection{Evaluation and Benchmarking}
+
+Developing reliable and standardized evaluation methodologies is still an open problem. The lack of shared benchmarks and reproducible experimental setups limits fair comparison across federated healthcare studies \cite{dayan2021federated}.
+
+\subsection{Ethical and Human-Centered AI}
+
+Ensuring ethical, safe, and human-aligned AI systems remains fundamental. Transparency, interpretability, and fairness must be addressed to foster trust among clinicians and patients \cite{beaulieu2020federated}.
+
+\subsection{System-Level Challenges in Federated Learning}
+
+The decentralized nature of FL introduces additional challenges that impact efficiency, security, and performance \cite{kairouz2021advances}:
+\begin{itemize}
+    \item \textbf{Data heterogeneity}: highly imbalanced and non-IID medical data across institutions \cite{beaulieu2020federated};
+    \item \textbf{Communication overhead}: frequent parameter exchanges over \\ constrained networks \cite{mcmahan2017communication};
+    \item \textbf{Security concerns}: vulnerability to poisoning, inference, and gradient leakage attacks \cite{abadi2016deep};
+    \item \textbf{Hardware heterogeneity}: varying computational capabilities across medical institutions \cite{dayan2021federated};
+    \item \textbf{Regulatory constraints}: the need for effective interfaces between AI researchers and medical professionals \cite{rare2025leveraging}.
+\end{itemize}
+
+\subsection{Privacy and Data Quality Challenges}
+
+Adaptive differential privacy mechanisms remain an open research direction, aiming to achieve minimal accuracy loss while maintaining strong privacy guarantees \cite{abadi2016deep,chen2022efficient}. Furthermore, real-world medical datasets often suffer from class imbalance, noisy labels, and a scarcity of malignant or rare cases, which complicates learning and evaluation \cite{rare2025leveraging}.
+
+\subsection{Future Directions}
+
+Future research is expected to move toward more integrated, adaptive, and human-aligned AI systems, combining scalable federated learning, adaptive privacy mechanisms, and tighter collaboration between technical and medical domains \cite{kairouz2021advances}.
 \section{Best Practices and Recommendations}
+
+Based on experimental evidence and real-world case studies, several good practices can be identified for deploying Federated Learning with Differential Privacy (FL-DP) in healthcare environments \cite{beaulieu2020federated,rare2025leveraging}.
+
+\subsection{Privacy Budget Selection}
+
+Careful selection and tuning of the differential privacy budget $(\varepsilon, \delta)$ is essential. Excessively strict privacy budgets may significantly degrade model accuracy due to noise injection, whereas weak budgets can compromise privacy guarantees \cite{abadi2016deep}. Empirical results suggest that intermediate privacy levels often provide a practical balance between utility and protection \cite{chen2022efficient}.
+
+\subsection{Gradient Clipping and Noise Control}
+
+Gradient clipping should be systematically applied prior to noise addition in DP mechanisms. This limits sensitivity, mitigates privacy attacks such as model inversion and membership inference, and improves training stability across heterogeneous clients \cite{abadi2016deep}.
+
+\subsection{Scalability and Communication Efficiency}
+
+Scalability must be explicitly considered in multi-institutional deployments. Efficient aggregation strategies, such as adaptive federated averaging or FedProx, help reduce communication overhead and improve convergence under non-IID data distributions \cite{mcmahan2017communication,kairouz2021advances}.
+
+\subsection{Robustness and Security}
+
+Robustness against malicious or faulty clients should be treated as a core requirement. Byzantine-resilient aggregation methods and secure model aggregation are recommended to protect the global model from adversarial manipulation \cite{kairouz2021advances}.
+
+\subsection{Regulatory Compliance}
+
+Strict regulatory compliance must be ensured throughout the FL lifecycle. Deployments should align with legal frameworks such as HIPAA and GDPR, incorporating transparent consent mechanisms and clear data governance policies \cite{beaulieu2020federated, rare2025leveraging}.
+
+\subsection{Model Maintenance and Monitoring}
+
+Continuous monitoring and incremental updating of federated models are advised to preserve clinical relevance. Adaptive privacy mechanisms and auditability tools may further support long-term deployment and trust \cite{dayan2021federated}.
+
 \section{Conclusion}
 
+This paper presented a systematic survey of contemporary approaches at the intersection of Artificial Intelligence, Federated Learning, and privacy-preserving techniques for healthcare applications. By organizing the existing literature, proposing a structured taxonomy, and critically analyzing current methods, this survey aims to support researchers and practitioners in understanding the current state of the field \cite{kairouz2021advances}.
+
+The analysis highlighted that Differential Privacy represents a practical and scalable privacy-preserving mechanism, particularly due to its formal guarantees and relatively low system overhead when compared to alternative cryptographic approaches \cite{abadi2016deep,chen2022efficient}. These characteristics make DP especially suitable for large-scale and resource-constrained healthcare environments.
+
+Furthermore, the combination of Federated Learning and Differential Privacy was shown to effectively address key challenges related to data privacy and model utility across multiple medical domains, including disease diagnosis and clinical outcome prediction \cite{beaulieu2020federated,dayan2021federated}. By keeping sensitive data localized while enabling collaborative model training, FL-DP frameworks offer a promising balance between privacy preservation and diagnostic performance.
+
+Despite these advances, several challenges remain. Future research should focus on large-scale experimental validation using real-world medical datasets, improved robustness under heterogeneous data distributions, and adaptive privacy mechanisms capable of dynamically balancing privacy and utility \cite{kairouz2021advances, rare2025leveraging}. Addressing these challenges will be essential for enabling reliable, ethical, and clinically relevant AI systems in healthcare.
 
 %
 % ---- Bibliography ----
